@@ -1,0 +1,2 @@
+arcgis==2.2.0
+progressbar2==4.3.2

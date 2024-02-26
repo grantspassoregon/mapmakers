@@ -1,0 +1,14 @@
+.env
+dist/*
+mapmakers.egg-info/*
+tests/__pycache__/*
+__pycache__/*
+mapmakers/__pycache__/*
+examples/grants_pass/__pycache__/*
+build
+.pypirc
+.pytest_cache/*
+docs/_build/*
+docs/_static/*
+docs/_templates/*
+
