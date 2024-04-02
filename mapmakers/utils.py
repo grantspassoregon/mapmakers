@@ -1,3 +1,4 @@
+import logging
 import random
 import string
 
@@ -20,7 +21,7 @@ def create_layer_id(layerIndex: int) -> str:
     )
 
 
-def expand_urls(stub: str, rng: range) -> list[str]:
+def expand_urls(stub: str, rng: range | list[int]) -> list[str]:
     """
     Generate list of urls over range index given a service stub.
 
@@ -31,9 +32,16 @@ def expand_urls(stub: str, rng: range) -> list[str]:
     :return: List of urls beginning in *stub* and ending in *rng* values.
     :rtype: list[str]
     """
+    values = []
+    match type(rng).__name__:
+        case "range":
+            values = list(rng)
+        case "list":
+            logging.info("List detected.")
+            values = rng
     urls = []
     if not stub.endswith("/"):
         stub = stub + "/"
-    for i in list(rng):
+    for i in values:
         urls.append(stub + str(i))
     return urls

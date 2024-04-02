@@ -327,7 +327,7 @@ class Layer:
         contents.update({"url": item.url})
         if item.title is None:
             if item.template is None:
-                logging.warn("Title is missing.")
+                logging.debug("Title is missing.")
             else:
                 contents.update({"title": item.template.title})
         else:
