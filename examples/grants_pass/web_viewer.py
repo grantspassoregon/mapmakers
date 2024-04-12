@@ -13,6 +13,7 @@ class Target(Enum):
     PUBLIC = "8b104a6cfc774ba29cd873edf2bbef73"
     PUBLIC1 = "df37a2bec8554462a4e33d02bea239dc"
     EDITOR = "54738cddf51648ad99ba0ec5dfff2625"
+    INTERNAL = "1d90a7718910422faceaaf91a2a95f52"
 
 
 gis = GIS_CONN
@@ -106,15 +107,18 @@ def business(t):
 
 
 def parking(t):
+    logging.info("Calling parking.")
     return t.template["parking"].into_items().group("Parking")
 
 
 def fixtures(t, public=False, portal="agol", url=services):
+    logging.info("Calling fixtures.")
     fixtures_public = t.template["transport"].into_items()
     fixtures_public.items = fixtures_public.items[16:21]
     urls = url["transportation"]
-    urls.agol = urls.agol[11:16]
-    urls.gp = urls.gp[11:16]
+    urls.agol = urls.agol[13:18]
+    urls.gp = urls.gp[13:18]
+    logging.info("Calling urls for fixtures.")
     fixtures_public = urls.urls(portal, fixtures_public)
     fixtures_public = url["transportation"].urls(portal, fixtures_public)
     if public:
@@ -128,21 +132,31 @@ def fixtures(t, public=False, portal="agol", url=services):
 
 
 def bike(t, portal="agol", url=services):
+    logging.info("Calling bike.")
     bike = t.template["transport"].into_items()
     bike.items = bike.items[11:16]
     urls = url["transportation"]
-    urls.agol = urls.agol[5:10]
-    urls.gp = urls.gp[5:10]
+    urls.agol = urls.agol[8:13]
+    urls.gp = urls.gp[8:13]
+    logging.info("Calling urls for bike.")
     bike = urls.urls(portal, bike)
     return bike.group("Bike | Walk | Ride")
 
 
 def streets(t, public=False, portal="agol", url=services):
+    logging.info("Calling streets.")
     streets = t.template["transport"].into_items()
     streets.items = streets.items[3:11]
     urls = url["transportation"]
-    urls.agol = urls.agol[3:11]
-    urls.gp = urls.gp[3:11]
+    url_range = [1, 2, 3, 4, 5, 5, 6, 7]
+    agol = []
+    gp = []
+    for i in url_range:
+        agol.append(urls.agol[i])
+        gp.append(urls.gp[i])
+    urls.agol = agol
+    urls.gp = gp
+    logging.info("Calling urls for streets.")
     streets = urls.urls(portal, streets)
     streets_public = copy.deepcopy(streets)
     if public:
@@ -150,22 +164,24 @@ def streets(t, public=False, portal="agol", url=services):
         return streets_public
     else:
         streets.items = streets.items[0:7]
-        street_adoption = (
+        streets.items[6] = (
             t.template["transportation_editing"]
             .items["transportation_editing_0"]
             .into_item()
         )
-        streets.append(street_adoption)
         streets = streets.group("Streets Group")
         return streets
 
 
 def traffic(t):
+    logging.info("Calling traffic.")
     return t.template["traffic"].into_items().group("Traffic")
 
 
 def transportation(t, public=False, portal="agol", url=services):
+    logging.info("Calling transportation.")
     transportation = t.template["transport"].into_items()
+    logging.info("Calling url for transportation.")
     transportation = url["transportation"].urls(portal, transportation)
     transportation.items = [transportation.items[0]]
     transportation = transportation.layers()
@@ -368,6 +384,33 @@ def build(target=Target.TEST.value, public=False, portal="agol", url=services):
         target,
         layers,
         gis,
+    )
+    # logging.debug(pprint.pprint(mp))
+    mp.build()
+    logging.info("Target map updated.")
+
+
+def internal_build(target=Target.TEST.value, public=False, portal="agol", url=services):
+    t = read_template()
+    layers = [
+        aerials(t),
+        street_imagery(t),
+        public_safety(t, public),
+        environment(t),
+        parks(t),
+        utilities(t, public, portal, url),
+        transportation(t, public, portal, url),
+        business(t),
+        planning(t, portal, url),
+        property(t, portal, url),
+        boundaries(t, portal, url),
+    ]
+    if not public:
+        layers.insert(2, sketch(t))
+    mp = m.Map(
+        target,
+        layers,
+        INT_CONN,
     )
     # logging.debug(pprint.pprint(mp))
     mp.build()

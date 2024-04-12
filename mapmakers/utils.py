@@ -1,4 +1,3 @@
-import logging
 import random
 import string
 
@@ -37,7 +36,6 @@ def expand_urls(stub: str, rng: range | list[int]) -> list[str]:
         case "range":
             values = list(rng)
         case "list":
-            logging.info("List detected.")
             values = rng
     urls = []
     if not stub.endswith("/"):

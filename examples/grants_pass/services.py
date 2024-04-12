@@ -148,7 +148,7 @@ zoning = Service("zoning", agol, gp)
 services.update({zoning.name: zoning})
 
 # transportation
-county_roads = "https://gis.ecso911.com/server/rest/services/Hosted/Centerline_View/FeatureServer/0"
+county_roads = "https://gis.ecso911.com/server/rest/services/Hosted/RoadCenterlines_View/FeatureServer/0"
 odot_railroad = "https://gis.odot.state.or.us/arcgis1006/rest/services/transgis/catalog/MapServer/143"
 transportation = "https://services2.arcgis.com/pc4beVTMEhYHqerq/arcgis/rest/services/transportation/FeatureServer/"
 url_range = [16, 15, 14, 13, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0]
