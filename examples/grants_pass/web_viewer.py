@@ -1,4 +1,5 @@
 import mapmakers as m
+import logging
 from examples.grants_pass.refs import *
 from examples.grants_pass.services import services
 from enum import Enum
@@ -152,6 +153,7 @@ def streets(t, public=False, portal="agol", url=services):
     agol = []
     gp = []
     for i in url_range:
+        logging.info("i: %s", i)
         agol.append(urls.agol[i])
         gp.append(urls.gp[i])
     urls.agol = agol
@@ -296,23 +298,14 @@ def environment(t):
     esh.load(gis)
     esh = esh.into_items().group("Essential Salmon Habitat (DSL)")
 
-    contours_2012 = t.template["contours"].into_items()
-    contours_2012.items = contours_2012.items[5:10]
-    contours_2012 = contours_2012.group("2012 Contours (DEM)")
-    contours = t.template["contours"].into_items()
-    contours.items = contours.items[0:5]
-    contours = contours.group("2004 Contours").into_layer()
-    contours.append(contours_2012)
-    contours = contours.group("Topographic Contours")
+    env = t.template["contours_1ft"].into_items().vector_tiles()
 
     wetlands = t.template["wetlands"].into_items()
     wetlands = wetlands.layers()
 
-    # wetlands.extend([contours, esh, deq, fema])
     streams = t.template["features"].items["features_1"].into_item().layer()
     hazards = t.template["hazards"].into_items().layers()
 
-    env = contours.into_layer()
     env.extend([wetlands, esh, deq, streams, fema, hazards])
     env = env.group("Environment")
     return env
@@ -367,7 +360,8 @@ def build(target=Target.TEST.value, public=False, portal="agol", url=services):
     t = read_template()
     layers = [
         aerials(t),
-        street_imagery(t),
+        # removed (its getting old)
+        # street_imagery(t),
         public_safety(t, public),
         environment(t),
         parks(t),
@@ -394,7 +388,8 @@ def internal_build(target=Target.TEST.value, public=False, portal="agol", url=se
     t = read_template()
     layers = [
         aerials(t),
-        street_imagery(t),
+        # removed (its getting old)
+        # street_imagery(t),
         public_safety(t, public),
         environment(t),
         parks(t),

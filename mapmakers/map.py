@@ -111,6 +111,9 @@ class Item:
         """
         return Layer.from_raster(self)
 
+    def vector_tile(self):
+        return Layer.from_vector_tile(self)
+
     @property
     def url(self):
         """
@@ -271,6 +274,9 @@ class Items:
         """
         return Layers.from_rasters(self)
 
+    def vector_tiles(self):
+        return Layers.from_vector_tiles(self)
+
     def append(self, item: Item):
         """
         The *append* method appends the ``Item`` *item* to the list of ``Item`` objects in the property *items*. Wraps the *append* method for a list.
@@ -418,7 +424,7 @@ class Layer:
             logging.debug("Template found.")
             data.update({"id": raster.template.item_name})
             if raster.template.layer_definition is not None:
-                logging.debug(
+                logging.info(
                     "Layer definition found: %s", raster.template.layer_definition
                 )
                 layer_def = json.dumps(raster.template.layer_definition)
@@ -437,6 +443,35 @@ class Layer:
         data.update({"title": raster.title})
         data.update({"url": raster.url})
         data.update({"visibility": raster.visible})
+        layer.layer = data
+        layer.search = search
+        return layer
+
+    @staticmethod
+    def from_vector_tile(tile: Item):
+        logging.debug("Calling from_vector_tile on %s", tile.title)
+        layer = Layer(tile, True)
+        search = []
+        data = {}
+        if tile.template is not None:
+            logging.debug("Template found for %s", tile.title)
+            data.update({"id": tile.template.item_name})
+            if tile.template.layer_definition is not None:
+                logging.debug(
+                    "layer definition found: %s", tile.template.layer_definition
+                )
+                layer_def = json.dumps(tile.template.layer_definition)
+                logging.debug("Type of layer_def: %s", type(layer_def))
+                if "VectorTileLayer" in layer_def:
+                    logging.debug("Vector tile layer.")
+                    data.update({"layerType": "VectorTileLayer"})
+            if tile.template.search is not None:
+                search = tile.template.search
+        data.update({"layerType": "VectorTileLayer"})
+        data.update({"opacity": 0.5})
+        data.update({"title": tile.title})
+        data.update({"styleUrl": tile.url})
+        data.update({"visibility": tile.visible})
         layer.layer = data
         layer.search = search
         return layer
@@ -580,6 +615,18 @@ class Layers:
             layers.append(Layer.from_raster(raster))
             if raster.template is not None:
                 tmp = raster.template
+                if tmp.search is not None:
+                    search.extend(tmp.search)
+        return Layers(layers, search)
+
+    @staticmethod
+    def from_vector_tiles(tiles: Items):
+        layers = []
+        search = []
+        for tile in tiles.items:
+            layers.append(Layer.from_vector_tile(tile))
+            if tile.template is not None:
+                tmp = tile.template
                 if tmp.search is not None:
                     search.extend(tmp.search)
         return Layers(layers, search)

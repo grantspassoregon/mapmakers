@@ -193,6 +193,23 @@ class TemplateItem:
             title, group_name, item_name, layer_definition, popup_info, url
         )
 
+    @staticmethod
+    def from_vector_tile(tile: dict, group_name: str):
+        logging.info(tile.keys())
+        title = "No title."
+        if "title" in tile:
+            title = str(tile["title"])
+        item_name = None
+        if "id" in tile:
+            item_name = str(tile["id"])
+        logging.info("Vector tile data type: %s", type(tile))
+        layer_definition = tile
+        popup_info = None
+        url = tile["styleUrl"]
+        return TemplateItem(
+            title, group_name, item_name, layer_definition, popup_info, url
+        )
+
     def into_item(self):
         """
         The *into_item* method converts a ``TemplateItem`` into a map ``Item``.  The url of the ``Item`` is set to the same url as the ``TemplateItem``.
@@ -201,7 +218,7 @@ class TemplateItem:
         :rtype: mapmakers.Item
         """
         url = "none"
-        if self.url != None:
+        if self.url is not None:
             url = self.url
         item = mapmakers.Item(url, self, title=self.title)
         return item
@@ -217,15 +234,26 @@ class TemplateItem:
         """
         fields = []
         if self.search is not None:
+            logging.info("Search length: %s", len(self.search))
             for name in self.search:
-                entry = {}
-                entry.update({"id": id})
-                field = {}
-                field.update({"name": name})
-                field.update({"exactMatch": False})
-                field.update({"type": "esriFieldTypeString"})
-                entry.update({"field": field})
-                fields.append(entry)
+                logging.info("name before: %s", name)
+                name = name.replace("'", "")
+                name = name.replace(",", "")
+                name = name.replace("[", "")
+                name = name.replace("]", "")
+                logging.info("name after: %s", name)
+                names = name.split()
+                logging.info("names: %s", names)
+                for nm in names:
+                    logging.info("Name is %s", nm)
+                    entry = {}
+                    entry.update({"id": id})
+                    field = {}
+                    field.update({"name": nm})
+                    field.update({"exactMatch": False})
+                    field.update({"type": "esriFieldTypeString"})
+                    entry.update({"field": field})
+                    fields.append(entry)
         return fields
 
     @property
@@ -414,6 +442,9 @@ class Template:
             ]:
                 logging.debug("Raster layer found.")
                 items.append(TemplateItem.from_raster(layer, self.name))
+            if layer["layerType"] in ["VectorTileLayer"]:
+                logging.debug("Vector tile layer found.")
+                items.append(TemplateItem.from_vector_tile(layer, self.name))
         return items
 
     def load(self, gis: GIS):
