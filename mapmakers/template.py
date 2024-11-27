@@ -195,14 +195,14 @@ class TemplateItem:
 
     @staticmethod
     def from_vector_tile(tile: dict, group_name: str):
-        logging.info(tile.keys())
+        logging.debug(tile.keys())
         title = "No title."
         if "title" in tile:
             title = str(tile["title"])
         item_name = None
         if "id" in tile:
             item_name = str(tile["id"])
-        logging.info("Vector tile data type: %s", type(tile))
+        logging.debug("Vector tile data type: %s", type(tile))
         layer_definition = tile
         popup_info = None
         url = tile["styleUrl"]
@@ -234,18 +234,18 @@ class TemplateItem:
         """
         fields = []
         if self.search is not None:
-            logging.info("Search length: %s", len(self.search))
+            logging.debug("Search length: %s", len(self.search))
             for name in self.search:
-                logging.info("name before: %s", name)
+                logging.debug("name before: %s", name)
                 name = name.replace("'", "")
                 name = name.replace(",", "")
                 name = name.replace("[", "")
                 name = name.replace("]", "")
-                logging.info("name after: %s", name)
+                logging.debug("name after: %s", name)
                 names = name.split()
-                logging.info("names: %s", names)
+                logging.debug("names: %s", names)
                 for nm in names:
-                    logging.info("Name is %s", nm)
+                    logging.debug("Name is %s", nm)
                     entry = {}
                     entry.update({"id": id})
                     field = {}

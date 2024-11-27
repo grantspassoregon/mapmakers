@@ -301,6 +301,18 @@ class Items:
         self._items.extend(items)
         return self
 
+    def insert(self, idx: int, item: Item):
+        """
+        The *insert* method inserts the ``Item`` object in *item* to the *items* property of self. Wraps the *insert* method for a list.
+
+        :param items: A list of ``Item`` objects.
+        :type item: Item
+        :return: Modifies and returns self.
+        :rtype: Items
+        """
+        self._items.insert(idx, item)
+        return self
+
     @property
     def items(self):
         """
@@ -424,7 +436,7 @@ class Layer:
             logging.debug("Template found.")
             data.update({"id": raster.template.item_name})
             if raster.template.layer_definition is not None:
-                logging.info(
+                logging.debug(
                     "Layer definition found: %s", raster.template.layer_definition
                 )
                 layer_def = json.dumps(raster.template.layer_definition)
@@ -706,6 +718,58 @@ class Layers:
         logging.debug("Calling extend.")
         for item in items:
             self.append(item)
+        return self
+
+    def insert(self, idx: int, item):
+        """
+        The *append* method adds a layer to the *layers* property and any search information for the layer to the *search* property.
+
+        :param item: The layer data to add to self.
+        :type item: Layer | Layers | Group | dict | list
+        :return: Modifies and returns self.
+        :rtype: Layers
+        """
+        logging.debug("Calling append.")
+        logging.debug("Type is %s", type(item))
+        match type(item).__name__:
+            case "Layer":
+                logging.debug("Layer type.")
+                self.layers.insert(idx, item.layer)
+                self.search.extend(item.search)
+            case "Layers":
+                logging.debug("Layers type.")
+                self.layers.insert(idx, item.layers)
+                self.search.extend(item.search)
+            case "Group":
+                logging.debug("Group type.")
+                self.layers.insert(idx, item.group)
+                self.search.extend(item.search)
+            case "dict":
+                logging.debug("Dict type.")
+                self.layers.insert(idx, item)
+            case "list":
+                logging.debug("List type.")
+                itm = item[0]
+                match type(itm).__name__:
+                    case "Layer":
+                        logging.debug("Layer type.")
+                        self.layers.insert(idx, itm.layer)
+                        self.search.extend(itm.search)
+                    case "Layer":
+                        logging.debug("Layers type.")
+                        self.layers.insert(idx, itm.layers)
+                        self.search.extend(itm.search)
+                    case "Group":
+                        logging.debug("Group type.")
+                        self.layers.insert(idx, itm.group)
+                        self.search.extend(itm.search)
+                    case "dict":
+                        logging.debug("Dict type.")
+                        self.layers.insert(idx, itm)
+            case _:
+                logging.warn(
+                    "Expected Layer, Layers, Group or dict.  Found %s", type(item)
+                )
         return self
 
     @property

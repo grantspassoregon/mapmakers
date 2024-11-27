@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from mapmakers import expand_urls, Items
 import logging
+import copy
 
 
 @dataclass
@@ -96,12 +97,12 @@ property = "https://services2.arcgis.com/pc4beVTMEhYHqerq/arcgis/rest/services/l
 url_range = [2, 1, 0]
 agol = expand_urls(property, url_range)
 agol.insert(0, county_parcels)
-property = (
-    "https://gisserver.grantspassoregon.gov/server/rest/services/land_use/MapServer/"
-)
-gp = expand_urls(property, url_range)
-gp.insert(0, county_parcels)
-property = Service("property", agol, gp)
+ecso = "https://gis.ecso911.com/server/rest/services/Hosted/JoCo_SiteStructureAddressPoints_View/FeatureServer/0"
+strategic_plan = "https://gisserver.grantspassoregon.gov/server/rest/services/Editing/strategic_plan/FeatureServer/1"
+verification = "https://gisserver.grantspassoregon.gov/server/rest/services/Editing/address_verification/FeatureServer/0"
+gp = [strategic_plan, verification, ecso]
+gp.extend(copy.deepcopy(agol))
+property = Service("property", agol, gp, gp)
 services.update({property.name: property})
 
 # environmental features

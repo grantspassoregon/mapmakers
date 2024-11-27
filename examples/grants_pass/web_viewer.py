@@ -38,7 +38,10 @@ def boundaries(t, portal="agol", url=services):
     boundaries.items = boundaries.items[0:4]
     ugb = t.template["boundaries_group"].items["boundaries_group_4"].into_item()
     ugb.visible = True
-    city_limits = t.template["boundaries_group"].items["boundaries_group_5"].into_item()
+    city_limits = t.template["boundaries_group"].items["boundaries_group_5"]
+    city_limits.title = "City Limits"
+    city_limits = city_limits.into_item()
+    # city_limits = t.template["boundaries_group"].items["boundaries_group_5"].into_item()
     city_limits.visible = True
     boundaries.items.extend([ugb, city_limits])
     boundaries = url["boundaries"].urls(portal, boundaries)
@@ -48,16 +51,55 @@ def boundaries(t, portal="agol", url=services):
     return boundaries
 
 
-def property(t, portal="agol", url=services):
+def property_agol(t, url=services):
     prop = t.template["property"].items["property_0"].into_item()
     prop.title = "Taxlots (County)"
     props = t.template["property"].into_items()
     props.items = props.items[1:4]
     prop = m.Items([prop])
     prop.items.extend(props)
-    prop = url["property"].urls(portal, prop)
+    prop = url["property"].urls("agol", prop)
     prop = prop.group("Property")
     return prop
+
+
+def property_edit(t, url=services):
+    man = t.template["address_management"].into_items()
+    logging.info("Man before: %s", man.items)
+    man.items = man.items[1:4]
+    logging.info("Man after %s", man.items)
+    prop = t.template["property"].items["property_0"].into_item()
+    prop.title = "Taxlots (County)"
+    props = t.template["property"].into_items()
+    props.items = props.items[1:4]
+    prop = m.Items([prop])
+    prop.items.extend(props)
+    man.items.extend(prop)
+    man = url["property"].urls("edit", man)
+    man = man.group("Property")
+    return man
+
+
+def property(t, portal="agol", url=services):
+    match portal:
+        case "agol":
+            return property_agol(t, url)
+        case "gp":
+            return property_edit(t, url)
+        case "edit":
+            return property_edit(t, url)
+
+
+# def property(t, portal="agol", url=services):
+#     prop = t.template["property"].items["property_0"].into_item()
+#     prop.title = "Taxlots (County)"
+#     props = t.template["property"].into_items()
+#     props.items = props.items[1:4]
+#     prop = m.Items([prop])
+#     prop.items.extend(props)
+#     prop = url["property"].urls(portal, prop)
+#     prop = prop.group("Property")
+#     return prop
 
 
 def historic_cultural(t, portal="agol", url=services):
@@ -288,7 +330,8 @@ def parks(t):
 
 
 def environment(t):
-    fema = t.template["fema_flood_wv"].into_items().group("FEMA Flood Hazard")
+    fema = t.template["fema_flood_wv"].into_items().group("NFHL (FEMA)")
+    nfhl = t.template["nfhl"].into_items().group("NFHL (local copy)")
     deq = (
         t.template["deq_dw_source"]
         .into_items()
@@ -306,7 +349,7 @@ def environment(t):
     streams = t.template["features"].items["features_1"].into_item().layer()
     hazards = t.template["hazards"].into_items().layers()
 
-    env.extend([wetlands, esh, deq, streams, fema, hazards])
+    env.extend([wetlands, esh, deq, streams, nfhl, fema, hazards])
     env = env.group("Environment")
     return env
 
@@ -360,8 +403,6 @@ def build(target=Target.TEST.value, public=False, portal="agol", url=services):
     t = read_template()
     layers = [
         aerials(t),
-        # removed (its getting old)
-        # street_imagery(t),
         public_safety(t, public),
         environment(t),
         parks(t),
