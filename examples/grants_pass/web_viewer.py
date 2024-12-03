@@ -51,43 +51,40 @@ def boundaries(t, portal="agol", url=services):
     return boundaries
 
 
-def property_agol(t, url=services):
-    prop = t.template["property"].items["property_0"].into_item()
-    prop.title = "Taxlots (County)"
-    props = t.template["property"].into_items()
-    props.items = props.items[1:4]
-    prop = m.Items([prop])
-    prop.items.extend(props)
-    prop = url["property"].urls("agol", prop)
+def strategic_plan(t):
+    return (
+        t.template["strategic_plan_edit"].into_items().group("Address Strategic Plan")
+    )
+
+
+def property_agol(t):
+    return t.template["property_agol"].into_items().group("Property")
+
+
+def property_edit(t):
+    prop = t.template["property_edit"].into_items().layers()
+    strat = strategic_plan(t)
+    prop.insert(5, strat)
     prop = prop.group("Property")
     return prop
 
 
-def property_edit(t, url=services):
-    man = t.template["address_management"].into_items()
-    logging.info("Man before: %s", man.items)
-    man.items = man.items[1:4]
-    logging.info("Man after %s", man.items)
-    prop = t.template["property"].items["property_0"].into_item()
-    prop.title = "Taxlots (County)"
-    props = t.template["property"].into_items()
-    props.items = props.items[1:4]
-    prop = m.Items([prop])
-    prop.items.extend(props)
-    man.items.extend(prop)
-    man = url["property"].urls("edit", man)
-    man = man.group("Property")
-    return man
+def property_gp(t):
+    prop = t.template["property_gp"].into_items().layers()
+    strat = strategic_plan(t)
+    prop.insert(5, strat)
+    prop = prop.group("Property")
+    return prop
 
 
-def property(t, portal="agol", url=services):
+def property(t, portal="agol"):
     match portal:
         case "agol":
-            return property_agol(t, url)
+            return property_agol(t)
         case "gp":
-            return property_edit(t, url)
+            return property_gp(t)
         case "edit":
-            return property_edit(t, url)
+            return property_edit(t)
 
 
 # def property(t, portal="agol", url=services):
@@ -243,6 +240,36 @@ def transportation(t, public=False, portal="agol", url=services):
     return transportation
 
 
+def water(t, portal="agol"):
+    match portal:
+        case "agol":
+            return t.template["water_agol"].into_items().group("Water Distribution")
+        case "gp":
+            return t.template["water_gp"].into_items().group("Water Distribution")
+        case "edit":
+            return t.template["water_edit"].into_items().group("Water Distribution")
+
+
+def storm(t, portal="agol"):
+    match portal:
+        case "agol":
+            return t.template["storm_agol"].into_items().group("Stormwater")
+        case "gp":
+            return t.template["storm_gp"].into_items().group("Stormwater")
+        case "edit":
+            return t.template["storm_edit"].into_items().group("Stormwater")
+
+
+def sewer(t, portal="agol"):
+    match portal:
+        case "agol":
+            return t.template["sewer_agol"].into_items().group("Wastewater")
+        case "gp":
+            return t.template["sewer_gp"].into_items().group("Wastewater")
+        case "edit":
+            return t.template["sewer_edit"].into_items().group("Wastewater")
+
+
 def water_utilities(t, public=False, portal="agol", url=services):
     water = t.template["water_wv"].into_items()
     urls = url["water_utilities"]
@@ -309,18 +336,24 @@ def utilities(t, public=False, portal="agol", url=services):
     power = (
         t.template["power_gas"].into_items().group("Power & Gas (Internal Use Only)")
     )
-    water = water_utilities(t, public, portal, url)
-    storm = stormwater(t, public, portal, url)
-    sewer = wastewater(t, public, portal, url)
+    water_utilities = water(t, portal)
+    storm_utilities = storm(t, portal)
+    sewer_utilities = sewer(t, portal)
+    # storm = stormwater(t, public, portal, url)
+    # sewer = wastewater(t, public, portal, url)
     impervious = t.template["impervious"].into_items().group("Impervious Surface")
     utilities = t.template["as_builts"].into_items().group("As-Builts").into_layer()
-    utilities_public = copy.deepcopy(utilities)
     if public:
-        utilities_public.extend([impervious, sewer, storm, water])
+        utilities_public = copy.deepcopy(utilities)
+        utilities_public.extend(
+            [impervious, sewer_utilities, storm_utilities, water_utilities]
+        )
         utilities_public = utilities_public.group("Utilities")
         return utilities_public
     else:
-        utilities.extend([impervious, sewer, storm, water, power])
+        utilities.extend(
+            [impervious, sewer_utilities, storm_utilities, water_utilities, power]
+        )
         utilities = utilities.group("Utilities")
         return utilities
 
@@ -410,7 +443,7 @@ def build(target=Target.TEST.value, public=False, portal="agol", url=services):
         transportation(t, public, portal, url),
         business(t),
         planning(t, portal, url),
-        property(t, portal, url),
+        property(t, portal),
         boundaries(t, portal, url),
     ]
     if not public:
@@ -438,7 +471,7 @@ def internal_build(target=Target.TEST.value, public=False, portal="agol", url=se
         transportation(t, public, portal, url),
         business(t),
         planning(t, portal, url),
-        property(t, portal, url),
+        property(t, portal),
         boundaries(t, portal, url),
     ]
     if not public:

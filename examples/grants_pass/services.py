@@ -171,14 +171,12 @@ services.update({transportation.name: transportation})
 
 # water utilities
 water = "https://services2.arcgis.com/pc4beVTMEhYHqerq/arcgis/rest/services/water_utilities/FeatureServer/"
-url_range = range(11, -1, -1)
+url_range = [11, 9, 7, 6, 5, 4, 3, 2, 1, 0]
 agol = expand_urls(water, url_range)
 water = "https://gisserver.grantspassoregon.gov/server/rest/services/PublicWorks/water_utilities/MapServer/"
 gp = expand_urls(water, url_range)
-url_range = range(10, -1, -1)
 water_editing = "https://gisserver.grantspassoregon.gov/server/rest/services/Editing/water_editing/FeatureServer/"
 edit = expand_urls(water_editing, url_range)
-edit.insert(1, "")
 water = Service("water_utilities", agol, gp, edit)
 services.update({water.name: water})
 
