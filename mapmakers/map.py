@@ -194,6 +194,11 @@ class Items:
     def __iter__(self):
         return self
 
+    def reverse(self):
+        """Wrapper calling reverse on the _items field of `Items`."""
+        self._items.reverse()
+        return self
+
     # def gen(self):
     #     for index in range(0, len(self._items), 1):
     #         yield self._items[index]
