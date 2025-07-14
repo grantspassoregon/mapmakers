@@ -1,10 +1,14 @@
 Logging into ArcGIS
 ===================
 
+In order to commit updates to Webmaps, either on AGOL or the internal portal, the ``mapmakers`` package must be logged in to your user account.  
+The City of Grants Pass requires multi-factor authentication, so the sign-in process cannot be fully automated.  
+Instead, you will prepare your log-in credentials within a ``.env`` file, and log in using a custom login script, then you will be able to load and use ``mapmakers`` normally.  
+The steps are as follows:
 
 * Obtain a client id.
 * Save the client id to a ``.env`` file in your working directory.
-* Run the login script in "/exmaples/grants_pass/login.py".
+* Run the login script in "/examples/grants_pass/login.py".
 * Import ``mapmakers`` into a build script for your new Webmap.
 * Run the build script.
 
@@ -27,9 +31,13 @@ The instructions to obtain a client ID come from the "User authentication with O
 Setting Up the ``.env`` File
 ----------------------------
 
-The client ID is an example of a form of credentials that is not easy to memorize. However, entering the client ID directly into our code would be insecure.  Anybody on Github could steal your credentials.  *Environmental variables* are a way to store these sensitive credentials on your local machine, and load them into the workspace later when needed.  The convention is to keep these variables stored in a file called ``.env``.  The dot at the beginning of the file name denotes that it is a hidden file, and will not appear by default within File Explorer on Windows.
+The client ID is an example of a form of credentials that is not easy to memorize. 
+However, entering the client ID directly into our code would be insecure.  Anybody on Github could steal your credentials.  
+*Environmental variables* are a way to store these sensitive credentials on your local machine, and load them into the workspace later when needed.  
+The convention is to keep these variables stored in a file called ``.env``.  
+The dot at the beginning of the file name denotes that it is a hidden file, and will not appear by default within File Explorer on Windows.
 
-At the start of the login scripts at "/examples/grants_pass/login.py", we use the following import statement and function call:
+At the start of the login script at "/examples/grants_pass/login.py", we use the following import statement and function call:
 
 .. code-block:: python
 
@@ -87,13 +95,20 @@ When the last line of the script executes, it will attempt to open a GIS connect
 
    Enter code obtained on signing in using SAML:
 
-A browser window will then open leading to a plain-Jane web page with the heading **OAuth2 Approval**.  The instructions will read "Please copy this code, switch to you application and paste it there:" and below will be a text field with a long string of text.  Copy this text, switch back to the terminal, and paste the authentication string there.  If you are using `Windows Terminal`_, pressing ``Ctrl`` + ``Shift`` + ``v`` will paste the text.
+A browser window will then open leading to a plain-Jane web page with the heading **OAuth2 Approval**.  
+The instructions will read "Please copy this code, switch to your application and paste it there:" and below will be a text field with a long string of text.  
+Copy this text, switch back to the terminal, and paste the authentication string there.  
+If you are using `Windows Terminal`_, pressing ``Ctrl`` + ``Shift`` + ``v`` will paste the text.
 
 .. _`Windows Terminal`: https://learn.microsoft.com/en-us/windows/terminal/
 
 Note that at the time of writing, after pressing ``Enter`` you will receive an *InsecureRequestWarning* advising you to add certificate verification.  You can safely ignore this warning, as we are logging in using the recommended method from ESRI.  Addressing this warning is a concern for the maintainers of the *arcgis* Python API.
 
-Upon successful completion, this script will add the variable *gis* to your Python environment, which holds a reference to the authenticated GIS connection.  The ``mapmakers`` library assumes the existence of the *GIS_CONN* variable.  If the GIS connection is not named *GIS_CONN*, or if you forget to run the login script prior to using the library, you will receive an error message that *GIS_CONN* is unassigned.  Admittedly, this device is a bit a crude hack to get around the restrictions of multi-factor authentication, and it is not best practice to use a variable in a library that is not necessarily assigned.  I am open to ideas for a better way to do this.
+Upon successful completion, this script will add the variable *GIS_CONN* to your Python environment, which holds a reference to the authenticated GIS connection.  
+The ``mapmakers`` library assumes the existence of the *GIS_CONN* variable.  
+If the GIS connection is not named *GIS_CONN*, or if you forget to run the login script prior to using the library, you will receive an error message that *GIS_CONN* is unassigned.  
+Admittedly, this device is a bit a crude hack to get around the restrictions of multi-factor authentication, and it is not best practice to use a variable in a library that is not necessarily assigned.  
+I am open to ideas for a better way to do this.
 
 To execute the login script, navigate to the ``mapmakers`` package location on your machine and open a session of Python from the terminal:
 
