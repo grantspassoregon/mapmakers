@@ -91,7 +91,7 @@ class Item:
         """
         return Layer(self)
 
-    def group(self, name: str):
+    def group(self, name: str, visible: bool = True):
         """
         The *group* method converts a map ``Item`` into a map ``Group`` with name *name*.
 
@@ -100,7 +100,7 @@ class Item:
         :return: ``Group`` instance constructed from self.
         :rtype: Group
         """
-        return Group.from_item(name, self)
+        return Group.from_item(name, self, visible)
 
     def raster(self):
         """
@@ -250,7 +250,7 @@ class Items:
                 i += 1
             return Items(members)
 
-    def group(self, name: str):
+    def group(self, name: str, visible: bool = True):
         """
         The *group* method coverts an ``Items`` object into a map ``Group`` with name *name*.
 
@@ -259,7 +259,7 @@ class Items:
         :return: ``Group`` instance constructed from self.
         :rtype: Group
         """
-        return Group.from_items(name, self)
+        return Group.from_items(name, self, visible)
 
     def layers(self):
         """
@@ -648,7 +648,7 @@ class Layers:
                     search.extend(tmp.search)
         return Layers(layers, search)
 
-    def group(self, name: str):
+    def group(self, name: str, visible: bool = True):
         """
         The *group* method converts a ``Layers`` object into a ``Group`` object.
 
@@ -657,7 +657,7 @@ class Layers:
         :return: A ``Group`` object constructed from self.
         :rtype: Group
         """
-        return Group.from_layers(name, self)
+        return Group.from_layers(name, self, visible)
 
     def append(self, item):
         """
@@ -808,16 +808,18 @@ class Group:
 
     _group: dict
     _search: list
+    _visible: bool
     _index: int
 
-    __slots__ = ("_group", "_search", "_index")
+    __slots__ = ("_group", "_search", "_visible", "_index")
 
-    def __init__(self, name: str, layers: list, search: list):
+    def __init__(self, name: str, layers: list, search: list, visible: bool = True):
         logging.debug("Calling init for Group.")
         group = {}
         group.update({"id": create_layer_id(random.randint(10000, 99999))})
         group.update({"layerType": "GroupLayer"})
         group.update({"title": name})
+        group.update({"visibility": visible})
         group.update({"layers": layers})
         self._group = group
         self._search = search
@@ -834,7 +836,7 @@ class Group:
         return self
 
     @staticmethod
-    def from_items(name: str, items: Items):
+    def from_items(name: str, items: Items, visible: bool = True):
         """
         The *from_items* method converts an ``Items`` object *items* into a ``Group`` object.
 
@@ -842,6 +844,8 @@ class Group:
         :type name: str
         :param items: The ``Items`` object to convert into a ``Group`` object.
         :type items: Items
+        :param visible: A boolean indicating whether the group should be visible.
+        :type visible: Bool
         :return: A ``Group`` object constructed from *items*.
         :rtype: Group
         """
@@ -852,10 +856,10 @@ class Group:
             layers.append(layer.layer)
             if layer.search is not None:
                 search.extend(layer.search)
-        return Group(name, layers, search)
+        return Group(name, layers, search, visible)
 
     @staticmethod
-    def from_item(name: str, item: Item):
+    def from_item(name: str, item: Item, visible: bool = True):
         """
         The *from_item* method converts an ``Item`` object *item* into a ``Group`` object.
 
@@ -863,18 +867,22 @@ class Group:
         :type name: str
         :param item: The ``Item`` object to convert into a ``Group`` object.
         :type item: Item
+        :param visible: A boolean indicating whether the group should be visible.
+        :type visible: Bool
         :return: A ``Group`` object constructed from *item*.
         :rtype: Group
         """
-        return Group.from_items(name, Items([item]))
+        return Group.from_items(name, Items([item]), visible)
 
     @staticmethod
-    def from_layer(name: str, layer: Layer):
+    def from_layer(name: str, layer: Layer, visible: bool = True):
         """
         The *from_layer* method converts a ``Layer`` object *layer* into a ``Group`` object.
 
         :param layer: The ``Layer`` object to convert into a ``Group`` object.
         :type item: Layer
+        :param visible: A boolean indicating whether the group should be visible.
+        :type visible: Bool
         :return: A ``Group`` object constructed from *layer*.
         :rtype: Group
         """
@@ -882,22 +890,24 @@ class Group:
         search = []
         if layer.search is not None:
             search = layer.search
-        return Group(name, lyr, search)
+        return Group(name, lyr, search, visible)
 
     @staticmethod
-    def from_layers(name: str, layers: Layers):
+    def from_layers(name: str, layers: Layers, visible: bool = True):
         """
         The *from_layers* method converts a ``Layers`` object *layers* into a ``Group`` object.
 
         :param layers: The ``Layers`` object to convert into a ``Group`` object.
         :type item: Layers
+        :param visible: A boolean indicating whether the group should be visible.
+        :type visible: Bool
         :return: A ``Group`` object constructed from *layers*.
         :rtype: Group
         """
         search = []
         if layers.search is not None:
             search = layers.search
-        return Group(name, layers.layers, search)
+        return Group(name, layers.layers, search, visible)
 
     def into_layer(self):
         """
