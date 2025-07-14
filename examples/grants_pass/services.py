@@ -81,28 +81,38 @@ class Service:
 
 services = {}
 
+
 # Grants Pass city services
 # regulatory boundaries
-boundaries = "https://services2.arcgis.com/pc4beVTMEhYHqerq/arcgis/rest/services/regulatory_boundaries/FeatureServer/"
-url_range = [7, 6, 3, 2, 1, 0]
-agol = expand_urls(boundaries, url_range)
-boundaries = "https://gisserver.grantspassoregon.gov/server/rest/services/city_boundaries/MapServer/"
-gp = expand_urls(boundaries, url_range)
-boundaries = Service("boundaries", agol, gp)
+def boundaries_service():
+    boundaries = "https://services2.arcgis.com/pc4beVTMEhYHqerq/arcgis/rest/services/regulatory_boundaries/FeatureServer/"
+    url_range = [7, 6, 3, 2, 1, 0]
+    agol = expand_urls(boundaries, url_range)
+    boundaries = "https://gisserver.grantspassoregon.gov/server/rest/services/city_boundaries/MapServer/"
+    gp = expand_urls(boundaries, url_range)
+    return Service("boundaries", agol, gp)
+
+
+boundaries = boundaries_service()
 services.update({boundaries.name: boundaries})
 
+
 # land use
-county_parcels = "https://gis.co.josephine.or.us/arcgis/rest/services/Assessor/Assessor_Taxlots/MapServer/0"
-property = "https://services2.arcgis.com/pc4beVTMEhYHqerq/arcgis/rest/services/land_use/FeatureServer/"
-url_range = [2, 1, 0]
-agol = expand_urls(property, url_range)
-agol.insert(0, county_parcels)
-ecso = "https://gis.ecso911.com/server/rest/services/Hosted/JoCo_SiteStructureAddressPoints_View/FeatureServer/0"
-strategic_plan = "https://gisserver.grantspassoregon.gov/server/rest/services/Editing/strategic_plan/FeatureServer/1"
-verification = "https://gisserver.grantspassoregon.gov/server/rest/services/Editing/address_verification/FeatureServer/0"
-gp = [strategic_plan, verification, ecso]
-gp.extend(copy.deepcopy(agol))
-property = Service("property", agol, gp, gp)
+def property_service():
+    county_parcels = "https://gis.co.josephine.or.us/arcgis/rest/services/Assessor/Assessor_Taxlots/MapServer/0"
+    property = "https://services2.arcgis.com/pc4beVTMEhYHqerq/arcgis/rest/services/land_use/FeatureServer/"
+    url_range = [2, 1, 0]
+    agol = expand_urls(property, url_range)
+    agol.insert(0, county_parcels)
+    ecso = "https://gis.ecso911.com/server/rest/services/Hosted/JoCo_SiteStructureAddressPoints_View/FeatureServer/0"
+    strategic_plan = "https://gisserver.grantspassoregon.gov/server/rest/services/Editing/strategic_plan/FeatureServer/1"
+    verification = "https://gisserver.grantspassoregon.gov/server/rest/services/Editing/address_verification/FeatureServer/0"
+    gp = [strategic_plan, verification, ecso]
+    gp.extend(copy.deepcopy(agol))
+    return Service("property", agol, gp, gp)
+
+
+property = property_service()
 services.update({property.name: property})
 
 # environmental features
@@ -110,42 +120,60 @@ services.update({property.name: property})
 # url_range = [1, 0]
 # features = expand_urls(features, url_range)
 
+
 # historic and cultural areas
-historic_cultural = "https://services2.arcgis.com/pc4beVTMEhYHqerq/ArcGIS/rest/services/historic_cultural_areas/FeatureServer/"
-url_range = range(3, -1, -1)
-agol = expand_urls(historic_cultural, url_range)
-historic_cultural = "https://gisserver.grantspassoregon.gov/server/rest/services/CommunityDevlp/historic_cultural_areas/MapServer/"
-gp = expand_urls(historic_cultural, url_range)
-historic_cultural = Service("historic_cultural", agol, gp)
+def historic_service():
+    historic_cultural = "https://services2.arcgis.com/pc4beVTMEhYHqerq/ArcGIS/rest/services/historic_cultural_areas/FeatureServer/"
+    url_range = range(3, -1, -1)
+    agol = expand_urls(historic_cultural, url_range)
+    historic_cultural = "https://gisserver.grantspassoregon.gov/server/rest/services/CommunityDevlp/historic_cultural_areas/MapServer/"
+    gp = expand_urls(historic_cultural, url_range)
+    return Service("historic_cultural", agol, gp)
+
+
+historic_cultural = historic_service()
 services.update({historic_cultural.name: historic_cultural})
 
+
 # agreements and financial
-agreements = "https://services2.arcgis.com/pc4beVTMEhYHqerq/arcgis/rest/services/agreements/FeatureServer/"
-url_range = range(4, -1, -1)
-agol = expand_urls(agreements, url_range)
-agreements = (
-    "https://gisserver.grantspassoregon.gov/server/rest/services/agreements/MapServer/"
-)
-gp = expand_urls(agreements, url_range)
-agreements = Service("agreements", agol, gp)
+def agreements_service():
+    agreements = "https://services2.arcgis.com/pc4beVTMEhYHqerq/arcgis/rest/services/agreements/FeatureServer/"
+    url_range = range(4, -1, -1)
+    agol = expand_urls(agreements, url_range)
+    agreements = "https://gisserver.grantspassoregon.gov/server/rest/services/agreements/MapServer/"
+    gp = expand_urls(agreements, url_range)
+    return Service("agreements", agol, gp)
+
+
+agreements = agreements_service()
 services.update({agreements.name: agreements})
 
+
 # adult use
-adult_use = "https://services2.arcgis.com/pc4beVTMEhYHqerq/arcgis/rest/services/marijuana_adult_use/FeatureServer/"
-url_range = range(13, -1, -1)
-agol = expand_urls(adult_use, url_range)
-adult_use = "https://gisserver.grantspassoregon.gov/server/rest/services/CommunityDevlp/marijuana_adult_use/MapServer/"
-gp = expand_urls(adult_use, url_range)
-adult_use = Service("adult_use", agol, gp)
+def adult_use_service():
+    adult_use = "https://services2.arcgis.com/pc4beVTMEhYHqerq/arcgis/rest/services/marijuana_adult_use/FeatureServer/"
+    url_range = range(13, -1, -1)
+    agol = expand_urls(adult_use, url_range)
+    adult_use = "https://gisserver.grantspassoregon.gov/server/rest/services/CommunityDevlp/marijuana_adult_use/MapServer/"
+    gp = expand_urls(adult_use, url_range)
+    return Service("adult_use", agol, gp)
+
+
+adult_use = adult_use_service()
 services.update({adult_use.name: adult_use})
 
+
 # zoning
-zoning = "https://services2.arcgis.com/pc4beVTMEhYHqerq/arcgis/rest/services/zoning/FeatureServer/"
-url_range = range(4, -1, -1)
-agol = expand_urls(zoning, url_range)
-zoning = "https://gisserver.grantspassoregon.gov/server/rest/services/CommunityDevlp/zoning/MapServer/"
-gp = expand_urls(zoning, url_range)
-zoning = Service("zoning", agol, gp)
+def zoning_service():
+    zoning = "https://services2.arcgis.com/pc4beVTMEhYHqerq/arcgis/rest/services/zoning/FeatureServer/"
+    url_range = range(4, -1, -1)
+    agol = expand_urls(zoning, url_range)
+    zoning = "https://gisserver.grantspassoregon.gov/server/rest/services/CommunityDevlp/zoning/MapServer/"
+    gp = expand_urls(zoning, url_range)
+    return Service("zoning", agol, gp)
+
+
+zoning = zoning_service()
 services.update({zoning.name: zoning})
 
 # transportation
@@ -169,35 +197,50 @@ services.update({transportation.name: transportation})
 # agol = expand_urls(transportation_editing, url_range)
 # agol.append(street_adoption_editing)
 
+
 # water utilities
-water = "https://services2.arcgis.com/pc4beVTMEhYHqerq/arcgis/rest/services/water_utilities/FeatureServer/"
-url_range = [11, 9, 7, 6, 5, 4, 3, 2, 1, 0]
-agol = expand_urls(water, url_range)
-water = "https://gisserver.grantspassoregon.gov/server/rest/services/PublicWorks/water_utilities/MapServer/"
-gp = expand_urls(water, url_range)
-water_editing = "https://gisserver.grantspassoregon.gov/server/rest/services/Editing/water_editing/FeatureServer/"
-edit = expand_urls(water_editing, url_range)
-water = Service("water_utilities", agol, gp, edit)
+def water_service():
+    water = "https://services2.arcgis.com/pc4beVTMEhYHqerq/arcgis/rest/services/water_utilities/FeatureServer/"
+    url_range = [11, 9, 7, 6, 5, 4, 3, 2, 1, 0]
+    agol = expand_urls(water, url_range)
+    water = "https://gisserver.grantspassoregon.gov/server/rest/services/PublicWorks/water_utilities/MapServer/"
+    gp = expand_urls(water, url_range)
+    water_editing = "https://gisserver.grantspassoregon.gov/server/rest/services/Editing/water_editing/FeatureServer/"
+    edit = expand_urls(water_editing, url_range)
+    return Service("water_utilities", agol, gp, edit)
+
+
+water = water_service()
 services.update({water.name: water})
 
+
 # stormwater
-stormwater = "https://services2.arcgis.com/pc4beVTMEhYHqerq/arcgis/rest/services/stormwater/FeatureServer/"
-url_range = range(11, -1, -1)
-agol = expand_urls(stormwater, url_range)
-stormwater = "https://gisserver.grantspassoregon.gov/server/rest/services/PublicWorks/stormwater/MapServer/"
-gp = expand_urls(stormwater, url_range)
-stormwater_editing = "https://gisserver.grantspassoregon.gov/server/rest/services/Editing/stormwater_editing/FeatureServer/"
-edit = expand_urls(stormwater_editing, url_range)
-stormwater = Service("stormwater", agol, gp, edit)
+def storm_service():
+    stormwater = "https://services2.arcgis.com/pc4beVTMEhYHqerq/arcgis/rest/services/stormwater/FeatureServer/"
+    url_range = range(11, -1, -1)
+    agol = expand_urls(stormwater, url_range)
+    stormwater = "https://gisserver.grantspassoregon.gov/server/rest/services/PublicWorks/stormwater/MapServer/"
+    gp = expand_urls(stormwater, url_range)
+    stormwater_editing = "https://gisserver.grantspassoregon.gov/server/rest/services/Editing/stormwater_editing/FeatureServer/"
+    edit = expand_urls(stormwater_editing, url_range)
+    return Service("stormwater", agol, gp, edit)
+
+
+stormwater = storm_service()
 services.update({stormwater.name: stormwater})
 
+
 # wastewater utilities
-wastewater = "https://services2.arcgis.com/pc4beVTMEhYHqerq/arcgis/rest/services/sewer_utilities/FeatureServer/"
-url_range = range(11, -1, -1)
-agol = expand_urls(wastewater, url_range)
-wastewater = "https://gisserver.grantspassoregon.gov/server/rest/services/PublicWorks/sewer_utilities/MapServer/"
-gp = expand_urls(wastewater, url_range)
-wastewater_editing = "https://gisserver.grantspassoregon.gov/server/rest/services/Editing/sewer_editing/FeatureServer/"
-edit = expand_urls(wastewater_editing, url_range)
-wastewater = Service("wastewater", agol, gp, edit)
+def waste_service():
+    wastewater = "https://services2.arcgis.com/pc4beVTMEhYHqerq/arcgis/rest/services/sewer_utilities/FeatureServer/"
+    url_range = range(11, -1, -1)
+    agol = expand_urls(wastewater, url_range)
+    wastewater = "https://gisserver.grantspassoregon.gov/server/rest/services/PublicWorks/sewer_utilities/MapServer/"
+    gp = expand_urls(wastewater, url_range)
+    wastewater_editing = "https://gisserver.grantspassoregon.gov/server/rest/services/Editing/sewer_editing/FeatureServer/"
+    edit = expand_urls(wastewater_editing, url_range)
+    return Service("wastewater", agol, gp, edit)
+
+
+wastewater = waste_service()
 services.update({wastewater.name: wastewater})
