@@ -1,7 +1,6 @@
 Logging into ArcGIS
 ===================
 
-In order to commit updates to Webmaps, either on AGOL or the internal portal, the ``mapmakers`` package must be logged in to your user account.  The City of Grants Pass requires multi-factor authentication, so the sign-in process cannot be fully automated.  Instead, you will prepare your log-in credentials within a ``.env`` file, and log in using custom login script, then you will be able to load and use ``mapmakers`` normally.  The steps are as follows:
 
 * Obtain a client id.
 * Save the client id to a ``.env`` file in your working directory.
