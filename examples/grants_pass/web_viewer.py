@@ -1,9 +1,16 @@
 import mapmakers as m
 import logging
-from examples.grants_pass.refs import *
-from examples.grants_pass.services import services
+from examples.grants_pass.refs import templates
+from examples.grants_pass.boundaries import boundaries
+from examples.grants_pass.economy import business
+from examples.grants_pass.environment import environment
+from examples.grants_pass.parks import parks
+from examples.grants_pass.planning import planning
+from examples.grants_pass.property import property
+from examples.grants_pass.public_safety import public_safety
+from examples.grants_pass.transportation import transportation
+from examples.grants_pass.utilities import utilities
 from enum import Enum
-import copy
 import pprint
 
 
@@ -32,419 +39,38 @@ def workbook():
     )
 
 
-def boundaries(t, portal="agol", url=services):
-    plss = t.template["plss"].into_items().group("PLSS")
-    boundaries = t.template["boundaries_group"].into_items()
-    boundaries.items = boundaries.items[0:4]
-    ugb = t.template["boundaries_group"].items["boundaries_group_4"].into_item()
-    ugb.visible = True
-    city_limits = t.template["boundaries_group"].items["boundaries_group_5"]
-    city_limits.title = "City Limits"
-    city_limits = city_limits.into_item()
-    # city_limits = t.template["boundaries_group"].items["boundaries_group_5"].into_item()
-    city_limits.visible = True
-    boundaries.items.extend([ugb, city_limits])
-    boundaries = url["boundaries"].urls(portal, boundaries)
-    boundaries = boundaries.layers()
-    logging.info("Appending PLSS")
-    boundaries = boundaries.append(plss).group("Boundaries")
-    return boundaries
-
-
-def strategic_plan(t):
-    return (
-        t.template["strategic_plan_edit"].into_items().group("Address Strategic Plan")
-    )
-
-
-def property_agol(t):
-    return t.template["property_agol"].into_items().group("Property")
-
-
-def property_edit(t):
-    prop = t.template["property_edit"].into_items().layers()
-    strat = strategic_plan(t)
-    prop.insert(5, strat)
-    prop = prop.group("Property")
-    return prop
-
-
-def property_gp(t):
-    prop = t.template["property_gp"].into_items().layers()
-    strat = strategic_plan(t)
-    prop.insert(5, strat)
-    prop = prop.group("Property")
-    return prop
-
-
-def property(t, portal="agol"):
-    match portal:
-        case "agol":
-            return property_agol(t)
-        case "gp":
-            return property_gp(t)
-        case "edit":
-            return property_edit(t)
-
-
-# def property(t, portal="agol", url=services):
-#     prop = t.template["property"].items["property_0"].into_item()
-#     prop.title = "Taxlots (County)"
-#     props = t.template["property"].into_items()
-#     props.items = props.items[1:4]
-#     prop = m.Items([prop])
-#     prop.items.extend(props)
-#     prop = url["property"].urls(portal, prop)
-#     prop = prop.group("Property")
-#     return prop
-
-
-def historic_cultural(t, portal="agol", url=services):
-    historic = t.template["historic_cultural"].into_items()
-    historic = url["historic_cultural"].urls(portal, historic)
-    return historic.group("Historic/Cultural Areas")
-
-
-def agreements(t, portal="agol", url=services):
-    agreements = t.template["agreements"].into_items()
-    agreements = url["agreements"].urls(portal, agreements)
-    return agreements.group("Agreements & Financial")
-
-
-def adult_use(t, portal="agol", url=services):
-    adult = t.template["marijuana_adult_use"].into_items()
-    adult = url["adult_use"].urls(portal, adult)
-    return adult.group("Adult Use")
-
-
-def zoning(t, portal="agol", url=services):
-    zoning = t.template["zoning"].into_items()
-    zoning = url["zoning"].urls(portal, zoning)
-    return zoning.group("Zoning Group")
-
-
-def planning(t, portal="agol", url=services):
-    historic = historic_cultural(t, portal, url)
-    agr = agreements(t, portal, url)
-    permitting = (
-        t.template["marijuana_permitting"].into_items().group("Marijuana Permitting")
-    )
-    adult = adult_use(t, portal, url)
-    zon = zoning(t, portal, url)
-
-    planning = t.template["planning"].into_items()
-    planning.items = planning.items[0:5]
-    planning.items[4].title = "Lawnridge-Washington Conservation District"
-    planning = planning.layers()
-    planning.extend([zon, adult, permitting, agr, historic])
-    planning = planning.group("Planning")
-
-    return planning
-
-
-def business(t):
-    return t.template["business"].into_items().group("Economic Development")
-
-
-def parking(t):
-    logging.info("Calling parking.")
-    return t.template["parking"].into_items().group("Parking")
-
-
-def fixtures(t, public=False, portal="agol", url=services):
-    logging.info("Calling fixtures.")
-    fixtures_public = t.template["transport"].into_items()
-    fixtures_public.items = fixtures_public.items[16:21]
-    urls = url["transportation"]
-    urls.agol = urls.agol[13:18]
-    urls.gp = urls.gp[13:18]
-    logging.info("Calling urls for fixtures.")
-    fixtures_public = urls.urls(portal, fixtures_public)
-    fixtures_public = url["transportation"].urls(portal, fixtures_public)
-    if public:
-        return fixtures_public.group("Fixtures")
-    else:
-        fixtures = t.template["transportation_editing"].into_items()
-        fixtures.items = fixtures.items[1:4]
-        fixtures.items.insert(2, fixtures_public.items[2])
-        fixtures.items.insert(4, fixtures_public.items[4])
-        return fixtures.group("Fixtures")
-
-
-def bike(t, portal="agol", url=services):
-    logging.info("Calling bike.")
-    bike = t.template["transport"].into_items()
-    bike.items = bike.items[11:16]
-    urls = url["transportation"]
-    urls.agol = urls.agol[8:13]
-    urls.gp = urls.gp[8:13]
-    logging.info("Calling urls for bike.")
-    bike = urls.urls(portal, bike)
-    return bike.group("Bike | Walk | Ride")
-
-
-def streets(t, public=False, portal="agol", url=services):
-    logging.info("Calling streets.")
-    streets = t.template["transport"].into_items()
-    streets.items = streets.items[3:11]
-    urls = url["transportation"]
-    url_range = [1, 2, 3, 4, 5, 5, 6, 7]
-    agol = []
-    gp = []
-    for i in url_range:
-        logging.info("i: %s", i)
-        agol.append(urls.agol[i])
-        gp.append(urls.gp[i])
-    urls.agol = agol
-    urls.gp = gp
-    logging.info("Calling urls for streets.")
-    streets = urls.urls(portal, streets)
-    streets_public = copy.deepcopy(streets)
-    if public:
-        streets_public = streets_public.group("Streets Group")
-        return streets_public
-    else:
-        streets.items = streets.items[0:7]
-        streets.items[6] = (
-            t.template["transportation_editing"]
-            .items["transportation_editing_0"]
-            .into_item()
-        )
-        streets = streets.group("Streets Group")
-        return streets
-
-
-def traffic(t):
-    logging.info("Calling traffic.")
-    return t.template["traffic"].into_items().group("Traffic")
-
-
-def transportation(t, public=False, portal="agol", url=services):
-    logging.info("Calling transportation.")
-    transportation = t.template["transport"].into_items()
-    logging.info("Calling url for transportation.")
-    transportation = url["transportation"].urls(portal, transportation)
-    transportation.items = [transportation.items[0]]
-    transportation = transportation.layers()
-    transportation.extend(
-        [
-            parking(t),
-            traffic(t),
-            streets(t, public, portal, url),
-            bike(t, portal, url),
-            fixtures(t, public, portal, url),
-        ]
-    )
-
-    transportation = transportation.group("Transportation")
-    return transportation
-
-
-def water(t, portal="agol"):
-    match portal:
-        case "agol":
-            return t.template["water_agol"].into_items().group("Water Distribution")
-        case "gp":
-            return t.template["water_gp"].into_items().group("Water Distribution")
-        case "edit":
-            return t.template["water_edit"].into_items().group("Water Distribution")
-
-
-def storm(t, portal="agol"):
-    match portal:
-        case "agol":
-            return t.template["storm_agol"].into_items().group("Stormwater")
-        case "gp":
-            return t.template["storm_gp"].into_items().group("Stormwater")
-        case "edit":
-            return t.template["storm_edit"].into_items().group("Stormwater")
-
-
-def sewer(t, portal="agol"):
-    match portal:
-        case "agol":
-            return t.template["sewer_agol"].into_items().group("Wastewater")
-        case "gp":
-            return t.template["sewer_gp"].into_items().group("Wastewater")
-        case "edit":
-            return t.template["sewer_edit"].into_items().group("Wastewater")
-
-
-def water_utilities(t, public=False, portal="agol", url=services):
-    water = t.template["water_wv"].into_items()
-    urls = url["water_utilities"]
-    index = [0, 2, 4, 5, 6, 7, 10, 9, 8, 11]
-    edit = [5, 6, 8, 9, 10, 11]
-    agol = []
-    gp = []
-    for i in index:
-        if not public and i in edit:
-            agol.append(urls.edit[i])
-            gp.append(urls.edit[i])
-        else:
-            agol.append(urls.agol[i])
-            gp.append(urls.gp[i])
-
-    urls.agol = agol
-    urls.gp = gp
-    water = urls.urls(portal, water)
-    return water.group("Water Distribution")
-
-
-def stormwater(t, public=False, portal="agol", url=services):
-    storm = t.template["stormwater"].into_items()
-    urls = url["stormwater"]
-    edit = [3, 4, 5, 6, 7, 8, 9, 10, 11]
-    agol = []
-    gp = []
-    for i in range(0, len(storm.items)):
-        if not public and i in edit:
-            agol.append(urls.edit[i])
-            gp.append(urls.edit[i])
-        else:
-            agol.append(urls.agol[i])
-            gp.append(urls.gp[i])
-
-    urls.agol = agol
-    urls.gp = gp
-    storm = urls.urls(portal, storm)
-    return storm.group("Stormwater")
-
-
-def wastewater(t, public=False, portal="agol", url=services):
-    waste = t.template["sewer"].into_items()
-    urls = url["wastewater"]
-    edit = [4, 5, 6, 7, 8, 9, 10, 11]
-    agol = []
-    gp = []
-    for i in range(0, len(waste.items)):
-        if not public and i in edit:
-            logging.info("Adding wastewater editing.")
-            agol.append(urls.edit[i])
-            gp.append(urls.edit[i])
-        else:
-            agol.append(urls.agol[i])
-            gp.append(urls.gp[i])
-
-    urls.agol = agol
-    urls.gp = gp
-    waste = urls.urls(portal, waste)
-    return waste.group("Wastewater")
-
-
-def utilities(t, public=False, portal="agol", url=services):
-    power = (
-        t.template["power_gas"].into_items().group("Power & Gas (Internal Use Only)")
-    )
-    water_utilities = water(t, portal)
-    storm_utilities = storm(t, portal)
-    sewer_utilities = sewer(t, portal)
-    # storm = stormwater(t, public, portal, url)
-    # sewer = wastewater(t, public, portal, url)
-    impervious = t.template["impervious"].into_items().group("Impervious Surface")
-    utilities = t.template["as_builts"].into_items().group("As-Builts").into_layer()
-    if public:
-        utilities_public = copy.deepcopy(utilities)
-        utilities_public.extend(
-            [impervious, sewer_utilities, storm_utilities, water_utilities]
-        )
-        utilities_public = utilities_public.group("Utilities")
-        return utilities_public
-    else:
-        utilities.extend(
-            [impervious, sewer_utilities, storm_utilities, water_utilities, power]
-        )
-        utilities = utilities.group("Utilities")
-        return utilities
-
-
-def parks(t):
-    return t.template["parks"].into_items().group("Parks")
-
-
-def environment(t):
-    fema = t.template["fema_flood_wv"].into_items().group("NFHL (FEMA)")
-    nfhl = t.template["nfhl"].into_items().group("NFHL (local copy)")
-    deq = (
-        t.template["deq_dw_source"]
-        .into_items()
-        .group("Drinking Water Source Areas (DEQ)")
-    )
-    esh = m.Template("esh", "08ebe57f03d949ef8afb183200566687")
-    esh.load(gis)
-    esh = esh.into_items().group("Essential Salmon Habitat (DSL)")
-
-    env = t.template["contours_1ft"].into_items().vector_tiles()
-
-    wetlands = t.template["wetlands"].into_items()
-    wetlands = wetlands.layers()
-
-    streams = t.template["features"].items["features_1"].into_item().layer()
-    hazards = t.template["hazards"].into_items().layers()
-
-    env.extend([wetlands, esh, deq, streams, nfhl, fema, hazards])
-    env = env.group("Environment")
-    return env
-
-
-def public_safety(t, public=False):
-    zonehaven = t.template["zonehaven"].items["zonehaven_0"].into_item()
-    zonehaven.title = "Zonehaven"
-    fire = t.template["fire"].into_items()
-    fire.items.append(zonehaven)
-    fire = fire.group("Fire").into_layer()
-    ems = m.Item(
-        "https://gis.ecso911.com/server/rest/services/Hosted/EMS_Polygon_View/FeatureServer/0",
-        title="EMS Response Zones (ECSO 911)",
-    )
-    fire_zone = m.Item(
-        "https://gis.ecso911.com/server/rest/services/Hosted/Fire_Polygon_View/FeatureServer/0",
-        title="Fire Response Zones (ECSO 911)",
-    )
-    law = m.Item(
-        "https://gis.ecso911.com/server/rest/services/Hosted/Law_Polygon_View/FeatureServer/0",
-        title="Law Enforcement Zone (ECSO 911)",
-    )
-    ecso = m.Items([law, fire_zone, ems]).layers()
-    ecso_public = copy.deepcopy(ecso)
-    if public:
-        ecso_public = ecso_public.group("Public Safety")
-        return ecso_public
-    else:
-        ecso.append(fire)
-        ecso = ecso.group("Public Safety")
-        return ecso
-
-
 def sketch(t):
     return t.template["sketch"].into_items().group("Sketch Editing")
 
 
-def street_imagery(t):
-    street = t.template["street_imagery"].items["street_imagery_0"].into_item().layer()
-    logging.debug(pprint.pprint(street))
-    return street
+# def street_imagery(t):
+#     street = t.template["street_imagery"].items["street_imagery_0"].into_item().layer()
+#     logging.debug(pprint.pprint(street))
+#     return street
 
 
 def aerials(t):
-    imagery = t.template["aerials"].into_items().rasters()
-    imagery = imagery.group("Aerials")
+    imagery = t.template["aerials"].into_items()
+    imagery.items[
+        len(imagery.items) - 1
+    ].visible = True  # Top-most aerial is the most recent.
+    imagery = imagery.rasters().group("Aerials", False)
     return imagery
 
 
-def build(target=Target.TEST.value, public=False, portal="agol", url=services):
+def build(target=Target.TEST.value, public=True, portal="agol"):
     t = read_template()
     layers = [
         aerials(t),
         public_safety(t, public),
         environment(t),
-        parks(t),
-        utilities(t, public, portal, url),
-        transportation(t, public, portal, url),
+        parks(t, portal),
+        utilities(t, public, portal),
+        transportation(t, public, portal),
         business(t),
-        planning(t, portal, url),
+        planning(t, portal),
         property(t, portal),
-        boundaries(t, portal, url),
+        boundaries(t, portal),
     ]
     if not public:
         layers.insert(2, sketch(t))
@@ -458,7 +84,7 @@ def build(target=Target.TEST.value, public=False, portal="agol", url=services):
     logging.info("Target map updated.")
 
 
-def internal_build(target=Target.TEST.value, public=False, portal="agol", url=services):
+def internal_build(target=Target.TEST.value, public=False, portal="agol"):
     t = read_template()
     layers = [
         aerials(t),
@@ -466,13 +92,13 @@ def internal_build(target=Target.TEST.value, public=False, portal="agol", url=se
         # street_imagery(t),
         public_safety(t, public),
         environment(t),
-        parks(t),
-        utilities(t, public, portal, url),
-        transportation(t, public, portal, url),
+        parks(t, portal),
+        utilities(t, public, portal),
+        transportation(t, public, portal),
         business(t),
-        planning(t, portal, url),
+        planning(t, portal),
         property(t, portal),
-        boundaries(t, portal, url),
+        boundaries(t, portal),
     ]
     if not public:
         layers.insert(2, sketch(t))
